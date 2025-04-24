@@ -1,43 +1,69 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
+import { Button } from '@/components/ui/button';
+import { Card, CardContent } from '@/components/ui/card';
 
-export default function Home() {
-  const fullText = `我曾经试图装点自己，用特殊的方法故事去改写未来，但已无力回天，就像这段文字一般没有结构，我没有省略任何文字却如行尸走肉，他像是最压抑的本能...`; // 可替换为完整文本
+export default function FragmentSelector() {
+  const [textBank, setTextBank] = useState('');
   const [fragment, setFragment] = useState('');
+  const [usedFragments, setUsedFragments] = useState(() => {
+    if (typeof window !== 'undefined') {
+      const saved = localStorage.getItem('usedFragments');
+      return saved ? JSON.parse(saved) : [];
+    }
+    return [];
+  });
+
+  useEffect(() => {
+    if (typeof window !== 'undefined') {
+      localStorage.setItem('usedFragments', JSON.stringify(usedFragments));
+    }
+  }, [usedFragments]);
 
   const getRandomFragment = () => {
-    const minLen = 3;
-    const maxLen = 15;
-    const len = Math.floor(Math.random() * (maxLen - minLen + 1)) + minLen;
-    const start = Math.floor(Math.random() * (fullText.length - len));
-    const result = fullText.slice(start, start + len);
-    setFragment(result);
+    if (!textBank) return;
+    let tries = 0;
+    const maxTries = 100;
+
+    while (tries < maxTries) {
+      const rand = Math.random();
+      const len = rand < 0.01 ? 100 : Math.floor(Math.random() * 13) + 3;
+      const start = Math.floor(Math.random() * (textBank.length - len));
+      const result = textBank.slice(start, start + len);
+
+      if (!usedFragments.includes(result)) {
+        setFragment(result);
+        setUsedFragments([...usedFragments, result]);
+        return;
+      }
+      tries++;
+    }
+    setFragment('No available new fragment. Please upload more content.');
+  };
+
+  const handleFileUpload = (e) => {
+    const file = e.target.files[0];
+    const reader = new FileReader();
+    reader.onload = () => {
+      const newText = reader.result;
+      setTextBank(prev => prev + '\n' + newText);
+    };
+    if (file) reader.readAsText(file);
   };
 
   return (
-    <main style={{ padding: 40, textAlign: 'center' }}>
-      <button
-        onClick={getRandomFragment}
-        style={{
-          padding: '10px 20px',
-          fontSize: '16px',
-          marginBottom: '20px',
-          cursor: 'pointer'
-        }}
-      >
-        抽一段
-      </button>
-      <div
-        style={{
-          padding: '20px',
-          fontSize: '18px',
-          border: '1px solid #ccc',
-          borderRadius: '10px',
-          maxWidth: '500px',
-          margin: '0 auto'
-        }}
-      >
-        {fragment || '点上面按钮开始'}
-      </div>
-    </main>
+    <div className="p-4 flex flex-col items-center gap-4">
+      <input
+        type="file"
+        accept=".txt,.rtf,.md"
+        onChange={handleFileUpload}
+        className="mb-2"
+      />
+      <Button onClick={getRandomFragment}>Draw Fragment</Button>
+      <Card className="w-full max-w-md">
+        <CardContent className="p-4 text-center text-lg whitespace-pre-wrap">
+          {fragment || 'Please upload a file and click the button'}
+        </CardContent>
+      </Card>
+    </div>
   );
 }
