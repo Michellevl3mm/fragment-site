@@ -1,5 +1,6 @@
+
 {
-  "name": "fragment-site-vercel-final",
+  "name": "fragment-site",
   "version": "1.0.0",
   "private": true,
   "scripts": {
