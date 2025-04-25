@@ -10,34 +10,51 @@ export default function Home() {
   });
   const [inputText, setInputText] = useState('');
   const [fullText, setFullText] = useState(
-    'I once tried to ornament myself, rewriting the future in strange ways, but it was all in vain. These words, like scattered fragments, lack structure and resolution.'
+    `我曾经试图装点自己，用特殊的方法改写未来，但已无力回天。就像这段文字一般没有结构，我没有省略任何文字却如何无序展开，他像是屈居尘埃的本能……；
+    I once tried to rewrite my future in strange ways. But all collapsed. Words drift like pieces of broken glass.`
   );
 
-  const getWords = (text) => {
-    return text.match(/\b\w+('\w+)?\b/g) || [];
+  const isEnglish = (text) => /^[\x00-\x7F]+$/.test(text.trim());
+
+  const getEnglishFragments = (text) => {
+    const tokens = text.split(/\s+/).filter(Boolean);
+    const minWords = 5;
+    const maxWords = 10;
+    const options = [];
+    for (let i = 0; i < tokens.length; i++) {
+      for (let len = minWords; len <= maxWords && i + len <= tokens.length; len++) {
+        const slice = tokens.slice(i, i + len);
+        const joined = slice.join(' ');
+        if (!usedFragments.has(joined)) options.push(joined);
+      }
+    }
+    return options;
+  };
+
+  const getChineseFragments = (text) => {
+    const options = [];
+    for (let i = 0; i < text.length; i++) {
+      for (let len = 3; len <= 15 && i + len <= text.length; len++) {
+        const frag = text.slice(i, i + len);
+        if (!/[^\u4e00-\u9fa5；，。？！]/.test(frag) && !usedFragments.has(frag)) {
+          options.push(frag);
+        }
+      }
+    }
+    return options;
   };
 
   const getRandomFragment = () => {
-    const minWords = 3;
-    const maxWords = 15;
-    const words = getWords(fullText);
-    const options = [];
+    const isEng = isEnglish(fullText);
+    const candidates = isEng ? getEnglishFragments(fullText) : getChineseFragments(fullText);
 
-    for (let i = 0; i < words.length; i++) {
-      for (let len = minWords; len <= maxWords && i + len <= words.length; len++) {
-        const slice = words.slice(i, i + len).join(' ');
-        if (!usedFragments.has(slice)) options.push(slice);
-      }
-    }
-
-    if (options.length === 0) {
+    if (candidates.length === 0) {
       setFragment('No more content available.');
       return;
     }
 
-    const result = options[Math.floor(Math.random() * options.length)];
+    const result = candidates[Math.floor(Math.random() * candidates.length)];
     setFragment(result);
-
     const newUsed = new Set(usedFragments);
     newUsed.add(result);
     setUsedFragments(newUsed);
@@ -55,24 +72,11 @@ export default function Home() {
     <main style={{ padding: 40, textAlign: 'center' }}>
       <button
         onClick={getRandomFragment}
-        style={{
-          padding: '10px 20px',
-          fontSize: '16px',
-          marginBottom: '20px',
-          cursor: 'pointer',
-        }}>
+        style={{ padding: '10px 20px', fontSize: '16px', marginBottom: '20px', cursor: 'pointer' }}>
         draw
       </button>
 
-      <div
-        style={{
-          padding: '20px',
-          fontSize: '18px',
-          border: '1px solid #ccc',
-          borderRadius: '10px',
-          maxWidth: '600px',
-          margin: '0 auto',
-        }}>
+      <div style={{ padding: '20px', fontSize: '18px', border: '1px solid #ccc', borderRadius: '10px', maxWidth: '600px', margin: '0 auto' }}>
         {fragment || 'Click the button above to begin'}
       </div>
 
@@ -86,5 +90,12 @@ export default function Home() {
         />
         <button
           onClick={handleSubmit}
-          style={{ padding: '10px 20px', marginLeft
+          style={{ padding: '10px 20px', marginLeft: '10px' }}>
+          submit
+        </button>
+      </div>
+    </main>
+  );
+}
+
 
