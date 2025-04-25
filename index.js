@@ -19,18 +19,19 @@ export default function Home() {
     const minWordsEN = 3;
     const maxWordsEN = 15;
 
-    const cnRegex = /[一-龥]/;
-    const words = fullText.split(/(\s+|(?<!\w)(?=[\u4e00-\u9fa5])|(?<=[\u4e00-\u9fa5])(?!\w))/).filter(Boolean);
+    const cnRegex = /[\u4e00-\u9fa5]/;
+    const tokens = fullText.match(/([\u4e00-\u9fa5]{1,}|[a-zA-Z']+|\s+|[^\u4e00-\u9fa5\w\s]+)/g) || [];
 
     const options = [];
-    for (let i = 0; i < words.length; i++) {
-      for (let len = 1; len <= maxLenCN && i + len <= words.length; len++) {
-        const slice = words.slice(i, i + len);
+    for (let i = 0; i < tokens.length; i++) {
+      for (let len = 1; len <= Math.max(maxLenCN, maxWordsEN) && i + len <= tokens.length; len++) {
+        const slice = tokens.slice(i, i + len);
         const joined = slice.join('').trim();
-        const isChinese = cnRegex.test(joined);
+        const isChinese = slice.every(token => /[\u4e00-\u9fa5]/.test(token));
+        const wordCount = slice.filter(token => /[a-zA-Z']{2,}/.test(token)).length;
         if (
           (isChinese && joined.length >= minLenCN && joined.length <= maxLenCN) ||
-          (!isChinese && slice.filter(w => /\w+/.test(w)).length >= minWordsEN && slice.filter(w => /\w+/.test(w)).length <= maxWordsEN)
+          (!isChinese && wordCount >= minWordsEN && wordCount <= maxWordsEN)
         ) {
           if (!usedFragments.has(joined)) options.push(joined);
         }
@@ -85,3 +86,4 @@ export default function Home() {
     </main>
   );
 }
+
