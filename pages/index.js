@@ -10,28 +10,36 @@ export default function Home() {
     return new Set();
   });
   const [inputText, setInputText] = useState('');
-  const [fullText, setFullText] = useState(\`
-水中、沉默的人，不再去相信不再去回应，按理来说我应该写下来，但是书写减缓了我思考的速度，我只能打字，有一下没一下的敲打，钢琴，其实我在弹钢琴……
-I once tried to adorn myself, to rewrite the future through peculiar stories and methods, but it was all in vain. Just like these words—without structure. I have omitted nothing, and yet I feel like the walking dead. It feels like the most repressed instinct...
-（中略，可自行补充完整长文）
-\`);
+  const [fullText, setFullText] = useState(`水中、沉默的人，不再去相信不再去回应，按理来说我应该写下来，但是书写减缓了我思考的速度，我只能打字，有一下没一下的敲打，钢琴，其实我在弹钢琴... I once tried to adorn myself, to rewrite the future through peculiar stories and methods, but it was all in vain...`);
+
+  const isEnglish = (char) => /[a-zA-Z0-9]/.test(char);
 
   const getRandomFragment = () => {
-    const isEnglish = /^[a-zA-Z0-9\s.,'";!?-]+$/.test(fullText);
-    const min = isEnglish ? 5 : 3;
-    const max = isEnglish ? 10 : 15;
-    const units = isEnglish ? fullText.split(/\s+/) : Array.from(fullText);
+    const text = fullText;
     const options = [];
-    for (let i = 0; i < units.length; i++) {
-      for (let len = min; len <= max && i + len <= units.length; len++) {
-        const slice = units.slice(i, i + len).join(isEnglish ? ' ' : '');
-        if (!usedFragments.has(slice)) options.push(slice);
+
+    if (isEnglish(text[0])) {
+      const words = text.split(/\s+/).filter(Boolean);
+      for (let i = 0; i < words.length; i++) {
+        for (let len = 5; len <= 10 && i + len <= words.length; len++) {
+          const fragment = words.slice(i, i + len).join(' ');
+          if (!usedFragments.has(fragment)) options.push(fragment);
+        }
+      }
+    } else {
+      for (let i = 0; i < text.length; i++) {
+        for (let len = 3; len <= 15 && i + len <= text.length; len++) {
+          const slice = text.slice(i, i + len);
+          if (!usedFragments.has(slice)) options.push(slice);
+        }
       }
     }
+
     if (options.length === 0) {
       setFragment('No more content available.');
       return;
     }
+
     const result = options[Math.floor(Math.random() * options.length)];
     setFragment(result);
     const newUsed = new Set(usedFragments);
@@ -42,7 +50,7 @@ I once tried to adorn myself, to rewrite the future through peculiar stories and
 
   const handleSubmit = () => {
     if (inputText.trim().length > 0) {
-      setFullText(prev => prev + (prev.endsWith(' ') ? '' : ' ') + inputText.trim());
+      setFullText(prev => prev + '\n' + inputText.trim());
       setInputText('');
     }
   };
