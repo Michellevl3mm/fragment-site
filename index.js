@@ -9,51 +9,39 @@ export default function Home() {
     return new Set();
   });
   const [inputText, setInputText] = useState('');
-  const [fullText, setFullText] = useState(
-    `我曾经试图装点自己，用特殊的方法改写未来，但已无力回天。就像这段文字一般没有结构，我没有省略任何文字却如何无序展开，他像是屈居尘埃的本能……；
-    I once tried to rewrite my future in strange ways. But all collapsed. Words drift like pieces of broken glass.`
-  );
+  const [fullText, setFullText] = useState(`水中、沉默的人，不再去相信不再去回应，按理来说我应该写下来，但是书写减缓了我思考的速度，我只能打字，有一下没一下的敲打，钢琴，其实我在弹钢琴.又耳鸣了，像随机生成的文字，轰鸣，我的头开始晕了，我到底该怎么办，我也不知道.
+...
+Tibet—
+The wind in the valley that lifted me into the sky,
+That cruel landscape—
+You shouldn’t stare at it so many times.`);
 
-  const isEnglish = (text) => /^[\x00-\x7F]+$/.test(text.trim());
-
-  const getEnglishFragments = (text) => {
-    const tokens = text.split(/\s+/).filter(Boolean);
-    const minWords = 5;
-    const maxWords = 10;
+  const getRandomFragment = () => {
+    const isEnglish = /^[\x00-\x7F]+$/.test(fullText);
     const options = [];
-    for (let i = 0; i < tokens.length; i++) {
-      for (let len = minWords; len <= maxWords && i + len <= tokens.length; len++) {
-        const slice = tokens.slice(i, i + len);
-        const joined = slice.join(' ');
-        if (!usedFragments.has(joined)) options.push(joined);
-      }
-    }
-    return options;
-  };
-
-  const getChineseFragments = (text) => {
-    const options = [];
-    for (let i = 0; i < text.length; i++) {
-      for (let len = 3; len <= 15 && i + len <= text.length; len++) {
-        const frag = text.slice(i, i + len);
-        if (!/[^\u4e00-\u9fa5；，。？！]/.test(frag) && !usedFragments.has(frag)) {
-          options.push(frag);
+    const words = fullText.split(/\s+/).filter(Boolean);
+    if (words.length > 5) {
+      for (let i = 0; i <= words.length - 5; i++) {
+        for (let len = 5; len <= 10 && i + len <= words.length; len++) {
+          const slice = words.slice(i, i + len).join(' ');
+          if (!usedFragments.has(slice)) options.push(slice);
         }
       }
     }
-    return options;
-  };
+    for (let i = 0; i < fullText.length; i++) {
+      for (let len = 3; len <= 15 && i + len <= fullText.length; len++) {
+        const slice = fullText.slice(i, i + len);
+        if (!/\s/.test(slice) && !usedFragments.has(slice)) {
+          options.push(slice);
+        }
+      }
+    }
 
-  const getRandomFragment = () => {
-    const isEng = isEnglish(fullText);
-    const candidates = isEng ? getEnglishFragments(fullText) : getChineseFragments(fullText);
-
-    if (candidates.length === 0) {
+    if (options.length === 0) {
       setFragment('No more content available.');
       return;
     }
-
-    const result = candidates[Math.floor(Math.random() * candidates.length)];
+    const result = options[Math.floor(Math.random() * options.length)];
     setFragment(result);
     const newUsed = new Set(usedFragments);
     newUsed.add(result);
@@ -72,11 +60,25 @@ export default function Home() {
     <main style={{ padding: 40, textAlign: 'center' }}>
       <button
         onClick={getRandomFragment}
-        style={{ padding: '10px 20px', fontSize: '16px', marginBottom: '20px', cursor: 'pointer' }}>
-        draw
+        style={{
+          padding: '10px 20px',
+          fontSize: '16px',
+          marginBottom: '20px',
+          cursor: 'pointer',
+        }}>
+        Draw
       </button>
 
-      <div style={{ padding: '20px', fontSize: '18px', border: '1px solid #ccc', borderRadius: '10px', maxWidth: '600px', margin: '0 auto' }}>
+      <div
+        style={{
+          padding: '20px',
+          fontSize: '18px',
+          border: '1px solid #ccc',
+          borderRadius: '10px',
+          maxWidth: '600px',
+          margin: '0 auto',
+          minHeight: '80px'
+        }}>
         {fragment || 'Click the button above to begin'}
       </div>
 
@@ -91,11 +93,12 @@ export default function Home() {
         <button
           onClick={handleSubmit}
           style={{ padding: '10px 20px', marginLeft: '10px' }}>
-          submit
+          Submit
         </button>
       </div>
     </main>
   );
 }
+
 
 
